@@ -53,6 +53,7 @@ io.on("connection", socket => {
       username, 
       message: "Room created successfully" 
     });
+    broadcastUserCount(roomName);
 
     console.log(`Room ${roomName} created by ${username}`);
   });
@@ -116,6 +117,8 @@ io.on("connection", socket => {
     rooms[roomName].users.push({ socketId: socket.id, username });
 
     console.log(`${username} (${socket.id}) joined room ${roomName}`);
+    broadcastUserCount(roomName);
+
   });
 
   // Get room info
@@ -192,8 +195,9 @@ io.on("connection", socket => {
       });
       
       console.log(`${user.username} left room ${roomName}`);
+      broadcastUserCount(roomName);    
+
     }
-    
     // Clean up user info
     delete userInfo[socket.id];
   });
@@ -227,7 +231,14 @@ io.on("connection", socket => {
       console.log(`${user.username} manually left room ${roomName}`);
     }
   });
+  function broadcastUserCount(roomName) {
+    console.log("roomName:", roomName);
+    const userCount = rooms[roomName]?.users.length || 0;
+    console.log("userCount:", userCount);
+    io.to(roomName).emit('user-count-updated', { count: userCount });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+ 
